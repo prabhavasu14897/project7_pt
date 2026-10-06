@@ -611,6 +611,8 @@ export const productConfig = {
       verify: "View status",
       retry: "Retry payment",
       reorder: "Order again",
+      // Prescription items need a new verified prescription, so only OTC lines are re-added.
+      reorderOtc: "Reorder non-prescription items",
       viewDetails: "View details",
       emptyOngoingTitle: "Nothing in progress",
       emptyOngoing: "Orders you place and prescriptions you upload appear here until delivery.",

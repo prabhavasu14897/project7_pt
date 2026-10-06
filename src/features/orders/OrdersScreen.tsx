@@ -70,7 +70,10 @@ function orderAction(order: Order, reorder: (id: string) => void): CardAction {
   if (isOngoing(order)) return { label: strings.track, href: details };
   const canReorder = order.lines.some((line) => getMedicine(line.medicineId)?.rule === "otc");
   if (order.status === "payment-failed" && canReorder) return { label: strings.retry, onClick: () => reorder(order.id) };
-  if (order.status === "delivered" && canReorder) return { label: strings.reorder, variant: "outline", onClick: () => reorder(order.id) };
+  if (order.status === "delivered" && canReorder) {
+    const hasRx = order.lines.some((line) => getMedicine(line.medicineId)?.rule !== "otc");
+    return { label: hasRx ? strings.reorderOtc : strings.reorder, variant: "outline", onClick: () => reorder(order.id) };
+  }
   return { label: strings.viewDetails, href: details, variant: "outline" };
 }
 

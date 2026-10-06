@@ -183,7 +183,11 @@ export function OrderTrackingScreen({ id }: { id: string }) {
             {(order.status === "delivered" || order.status === "cancelled" || order.status === "payment-failed") &&
               order.lines.some((line) => getMedicine(line.medicineId)?.rule === "otc") && (
                 <Button variant={order.status === "payment-failed" ? "primary" : "outline"} leftIcon="reorder" onClick={reorder}>
-                  {order.status === "payment-failed" ? content.orders.retry : strings.reorder}
+                  {order.status === "payment-failed"
+                    ? content.orders.retry
+                    : order.lines.some((line) => getMedicine(line.medicineId)?.rule !== "otc")
+                      ? content.orders.reorderOtc
+                      : strings.reorder}
                 </Button>
               )}
           </Card>

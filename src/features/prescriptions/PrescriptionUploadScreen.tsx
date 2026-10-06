@@ -60,7 +60,7 @@ export function PrescriptionUploadScreen() {
       <h1 className="text-h1 font-extrabold tracking-tight text-text">{strings.title}</h1>
 
       <div className="grid gap-5 lg:grid-cols-12 lg:items-start lg:gap-8">
-        <Card padding="lg" className="flex flex-col gap-5 lg:col-span-7">
+        <Card padding="lg" className="flex min-w-0 flex-col gap-5 lg:col-span-7">
           {presetMedicine ? (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <span className="text-sm font-semibold text-text-muted">{strings.forMedicines}</span>
@@ -119,7 +119,7 @@ export function PrescriptionUploadScreen() {
           )}
         </Card>
 
-        <Card padding="lg" variant="muted" className="flex flex-col gap-4 lg:col-span-5">
+        <Card padding="lg" variant="muted" className="flex min-w-0 flex-col gap-4 lg:col-span-5">
           <h2 className="text-h3 font-bold text-text">{strings.howTitle}</h2>
           <ol className="flex flex-col gap-3">
             {strings.how.map((step, index) => (

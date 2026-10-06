@@ -65,7 +65,7 @@ export function PrescriptionStatusScreen({ id }: { id: string }) {
 
       <div className="grid gap-5 lg:grid-cols-12 lg:items-start lg:gap-8">
         {/* Primary column: the status, its next action, then the timeline. The status is stated once, in the notice. */}
-        <div className="flex flex-col gap-5 lg:col-span-7">
+        <div className="flex min-w-0 flex-col gap-5 lg:col-span-7">
           <Card padding="lg" className="flex flex-col gap-5">
             {current.status === "under-review" && (
               <Notice tone="warning" icon="clock" title={strings.underReview.title} live>
@@ -110,7 +110,7 @@ export function PrescriptionStatusScreen({ id }: { id: string }) {
           </Card>
         </div>
 
-        <div className="flex flex-col gap-5 lg:col-span-5">
+        <div className="flex min-w-0 flex-col gap-5 lg:col-span-5">
           <Card padding="lg" className="flex flex-col gap-4">
             <h2 className="text-h3 font-bold text-text">{strings.medicines}</h2>
             <ul className="flex flex-col divide-y divide-border">
