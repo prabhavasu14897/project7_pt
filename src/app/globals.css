@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/*
+ * Every value below points at a --cn-* variable generated from config/product.config.ts
+ * (see src/lib/theme.ts). Tailwind's default palette is removed so screens can only use CareNow tokens.
+ */
+@theme inline {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-background: var(--cn-color-background);
+  --color-surface: var(--cn-color-surface);
+  --color-surface-muted: var(--cn-color-surface-muted);
+  --color-primary: var(--cn-color-primary);
+  --color-primary-dark: var(--cn-color-primary-dark);
+  --color-primary-deep: var(--cn-color-primary-deep);
+  --color-primary-soft: var(--cn-color-primary-soft);
+  --color-secondary: var(--cn-color-secondary);
+  --color-secondary-text: var(--cn-color-secondary-text);
+  --color-secondary-soft: var(--cn-color-secondary-soft);
+  --color-text: var(--cn-color-text);
+  --color-text-muted: var(--cn-color-text-muted);
+  --color-text-subtle: var(--cn-color-text-subtle);
+  --color-border: var(--cn-color-border);
+  --color-border-strong: var(--cn-color-border-strong);
+  --color-success: var(--cn-color-success);
+  --color-success-text: var(--cn-color-success-text);
+  --color-success-soft: var(--cn-color-success-soft);
+  --color-warning: var(--cn-color-warning);
+  --color-warning-text: var(--cn-color-warning-text);
+  --color-warning-soft: var(--cn-color-warning-soft);
+  --color-danger: var(--cn-color-danger);
+  --color-danger-text: var(--cn-color-danger-text);
+  --color-danger-soft: var(--cn-color-danger-soft);
+  --color-rating: var(--cn-color-rating);
+
+  --radius-sm: var(--cn-radius-sm);
+  --radius-md: var(--cn-radius-md);
+  --radius-lg: var(--cn-radius-lg);
+  --radius-xl: var(--cn-radius-xl);
+  --radius-full: var(--cn-radius-full);
+
+  --text-display: var(--cn-text-display);
+  --text-display--line-height: var(--cn-text-display-lh);
+  --text-h1: var(--cn-text-h1);
+  --text-h1--line-height: var(--cn-text-h1-lh);
+  --text-h2: var(--cn-text-h2);
+  --text-h2--line-height: var(--cn-text-h2-lh);
+  --text-h3: var(--cn-text-h3);
+  --text-h3--line-height: var(--cn-text-h3-lh);
+  --text-body: var(--cn-text-body);
+  --text-body--line-height: var(--cn-text-body-lh);
+  --text-sm: var(--cn-text-sm);
+  --text-sm--line-height: var(--cn-text-sm-lh);
+  --text-xs: var(--cn-text-xs);
+  --text-xs--line-height: var(--cn-text-xs-lh);
+
+  --shadow-card: var(--cn-shadow-card);
+  --shadow-raised: var(--cn-shadow-raised);
+  --shadow-nav: var(--cn-shadow-nav);
+
+  --font-sans: var(--cn-font-sans);
+  --container-content: var(--cn-max-width);
+
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary-dark);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-primary-soft);
+  }
+
+  input[type="search"]::-webkit-search-cancel-button {
+    appearance: none;
+  }
+}
+
+@utility container-page {
+  width: 100%;
+  max-width: var(--container-content);
+  margin-inline: auto;
+  padding-inline: 1rem;
+
+  @variant sm {
+    padding-inline: 1.5rem;
+  }
+  @variant lg {
+    padding-inline: 2rem;
+  }
+  @variant xl {
+    padding-inline: 3rem;
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes cn-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes cn-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 40%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-primary) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

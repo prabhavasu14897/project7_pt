@@ -1,0 +1,136 @@
+import {
+  Activity,
+  Ban,
+  Bone,
+  Banknote,
+  Bell,
+  CalendarClock,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  CircleAlert,
+  ClipboardList,
+  CreditCard,
+  Droplets,
+  Flower2,
+  Clock,
+  Compass,
+  FileText,
+  FlaskConical,
+  HeartHandshake,
+  HeartPulse,
+  House,
+  LifeBuoy,
+  LockKeyhole,
+  MapPin,
+  MessageSquare,
+  Minus,
+  PackageCheck,
+  Phone,
+  Settings2,
+  PillBottle,
+  Package,
+  Plus,
+  RotateCcw,
+  Pill,
+  Search,
+  ShieldCheck,
+  ShieldPlus,
+  ShoppingBag,
+  Smartphone,
+  Sun,
+  Thermometer,
+  Stethoscope,
+  Tag,
+  Trash2,
+  Truck,
+  UploadCloud,
+  UserRound,
+  Video,
+  Wallet,
+  X,
+  Zap,
+  type LucideIcon,
+  type LucideProps,
+} from "lucide-react";
+
+/**
+ * Config refers to icons by key so content stays serialisable.
+ * Add new keys here rather than importing lucide icons ad hoc in screens.
+ */
+const registry = {
+  home: House,
+  explore: Compass,
+  orders: ClipboardList,
+  health: HeartPulse,
+  profile: UserRound,
+  bell: Bell,
+  cart: ShoppingBag,
+  search: Search,
+  location: MapPin,
+  medicines: Pill,
+  "lab-tests": FlaskConical,
+  doctors: Stethoscope,
+  "home-care": HeartHandshake,
+  "health-packages": ShieldPlus,
+  prescription: FileText,
+  restricted: Ban,
+  check: Check,
+  verified: ShieldCheck,
+  clock: Clock,
+  schedule: CalendarClock,
+  delivery: Truck,
+  distance: MapPin,
+  video: Video,
+  upload: UploadCloud,
+  package: PackageCheck,
+  alert: CircleAlert,
+  lock: LockKeyhole,
+  reorder: RotateCcw,
+  close: X,
+  minus: Minus,
+  trash: Trash2,
+  tag: Tag,
+  help: LifeBuoy,
+  phone: Phone,
+  message: MessageSquare,
+  prototype: Settings2,
+  // Payment methods.
+  upi: Smartphone,
+  card: CreditCard,
+  wallet: Wallet,
+  cash: Banknote,
+  // Medicine forms.
+  // Plain pill: lucide "Tablets" draws slashed circles that read as a prohibition mark next to the Restricted badge.
+  tablet: Pill,
+  capsule: Pill,
+  bottle: PillBottle,
+  sachet: Package,
+  plus: Plus,
+  "chevron-right": ChevronRight,
+  "chevron-down": ChevronDown,
+  // Health concerns (Explore "Popular categories").
+  fever: Thermometer,
+  pain: Zap,
+  heart: HeartPulse,
+  thyroid: Activity,
+  vitamins: Sun,
+  skin: Droplets,
+  allergy: Flower2,
+  bone: Bone,
+} satisfies Record<string, LucideIcon>;
+
+export type IconName = keyof typeof registry;
+
+export function isIconName(name: string): name is IconName {
+  return name in registry;
+}
+
+interface IconProps extends Omit<LucideProps, "ref"> {
+  name: IconName | (string & {});
+}
+
+export function Icon({ name, size = 20, strokeWidth = 1.9, ...rest }: IconProps) {
+  const Component = isIconName(name) ? registry[name] : CircleAlert;
+  return <Component aria-hidden="true" focusable="false" size={size} strokeWidth={strokeWidth} {...rest} />;
+}
