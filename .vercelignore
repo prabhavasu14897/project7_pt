@@ -1,0 +1,5 @@
+# Design tooling and review artifacts: not needed to build or serve the site.
+.claude
+.impeccable
+reference-images
+*.tsbuildinfo
