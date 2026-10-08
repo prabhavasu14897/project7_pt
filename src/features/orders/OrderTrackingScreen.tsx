@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { journey, orderProgression, useJourney } from "@/features/journey/store";
 import { pharmacyName } from "@/features/journey/pricing";
-import { expectedArrival, orderBadge, orderTimeline, prescriptionForOrderRef, priceRows } from "@/features/journey/selectors";
+import { expectedArrival, orderBadge, orderTimeline, orderVerifiedAt, prescriptionForOrderRef, priceRows } from "@/features/journey/selectors";
 import { getMedicine } from "@/features/medicines/medicineData";
 
 const { content, demoData } = productConfig;
@@ -50,8 +50,9 @@ export function OrderTrackingScreen({ id }: { id: string }) {
 
   const badge = orderBadge(order);
   const arrival = expectedArrival(order);
-  const timelineNow = orderTimeline(order).find((step) => step.state === "current");
-  const address = demoData.addresses.find((item) => item.id === order.addressId);
+  const timeline = orderTimeline(order, orderVerifiedAt(state, order));
+  const timelineNow = timeline.find((step) => step.state === "current");
+  const address = state.addresses.find((item) => item.id === order.addressId);
   const method = demoData.paymentMethods.find((item) => item.id === order.paymentMethod);
   const partner = demoData.deliveryPartner;
   const canAdvance = orderProgression.indexOf(order.status) >= 0 && order.status !== "delivered";
@@ -122,7 +123,7 @@ export function OrderTrackingScreen({ id }: { id: string }) {
 
 
           <Card padding="lg" className="flex flex-col gap-4">
-            <StatusTimeline steps={orderTimeline(order)} label={strings.timelineLabel} />
+            <StatusTimeline steps={timeline} label={strings.timelineLabel} />
             {canCancel &&
               (confirmingCancel ? (
                 <div className="flex flex-col gap-3 rounded-md bg-surface-muted p-4">

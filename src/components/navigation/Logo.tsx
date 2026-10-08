@@ -33,7 +33,7 @@ export function Logo({ name, href = "/", size = "md", className }: LogoProps) {
   return (
     <Link
       href={href}
-      className={cn("inline-flex shrink-0 items-center gap-2 rounded-md font-extrabold tracking-tight text-text", className)}
+      className={cn("inline-flex min-h-11 shrink-0 items-center gap-2 rounded-md font-extrabold tracking-tight text-text", className)}
     >
       <LogoMark size={size === "md" ? 30 : 26} />
       <span className={size === "md" ? "text-h3" : "text-body"}>{name}</span>

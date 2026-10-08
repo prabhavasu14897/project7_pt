@@ -76,7 +76,7 @@ export function ProductCard({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <Heading className="text-body font-semibold leading-snug text-text">
           {href ? (
-            <Link href={href} className="rounded-sm hover:text-primary-deep">
+            <Link href={href} className="-my-3 inline-block rounded-sm py-3 hover:text-primary-deep">
               {title}
             </Link>
           ) : (

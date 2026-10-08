@@ -26,7 +26,7 @@ export default async function PlaceholderPage({ params }: PlaceholderPageProps) 
         icon="explore"
         title={strings.title}
         description={strings.description}
-        action={{ label: strings.backHome, href: "/" }}
+        action={{ label: strings.backHome, href: productConfig.routes.home }}
       />
     </div>
   );

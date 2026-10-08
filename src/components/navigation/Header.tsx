@@ -15,6 +15,8 @@ export interface HeaderAction extends NavItem {
 
 interface HeaderProps {
   brandName: string;
+  /** Where the logo leads, usually Home. */
+  homeHref?: string;
   navItems: readonly NavItem[];
   navLabel: string;
   activeKey?: string;
@@ -41,6 +43,7 @@ interface HeaderProps {
  */
 export function Header({
   brandName,
+  homeHref,
   navItems,
   navLabel,
   activeKey,
@@ -53,7 +56,7 @@ export function Header({
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur-sm">
       <div className="container-page">
         <div className="flex h-16 items-center gap-3 lg:h-[72px] lg:gap-6">
-          <Logo name={brandName} />
+          <Logo name={brandName} href={homeHref} />
 
           <DesktopNav items={navItems} activeKey={activeKey} label={navLabel} className="hidden lg:block" />
 

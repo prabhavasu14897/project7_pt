@@ -4,11 +4,29 @@ import { useSyncExternalStore } from "react";
 import { productConfig } from "@config/product.config";
 import { getMedicine } from "@/features/medicines/medicineData";
 import { computeTotals, toOrderLines, unitPrice } from "./pricing";
-import type { CartLine, CheckoutDraft, JourneyState, Order, OrderStatus, Prescription, PrescriptionStatus } from "./types";
+import { dayKey } from "@/lib/format";
+import type {
+  Address,
+  Booking,
+  CartLine,
+  CheckoutDraft,
+  FamilyMember,
+  JourneyState,
+  LabReport,
+  Order,
+  OrderStatus,
+  Prescription,
+  PrescriptionStatus,
+  Profile,
+  Reminder,
+  ReminderKind,
+  ReminderRepeat,
+  Settings,
+} from "./types";
 
 const { demoData } = productConfig;
 const STORAGE_KEY = "carenow.journey";
-const VERSION = 2;
+const VERSION = 5;
 
 const MINUTE = 60_000;
 const DAY = 24 * 60 * MINUTE;
@@ -80,6 +98,56 @@ function seed(now: number): JourneyState {
       wallet: demoData.wallets[0] ?? "",
     },
     orders,
+    // One past consult, so booking history isn't empty on first visit.
+    bookings: [
+      {
+        id: "BK2041",
+        kind: "doctor",
+        serviceId: "priya-sharma",
+        title: "Dr. Priya Sharma",
+        providerId: "priya-sharma",
+        providerName: "Dr. Priya Sharma",
+        patientId: "self",
+        patientName: demoData.familyMembers[0]?.name ?? "",
+        mode: "online",
+        slotAt: iso(now - 12 * DAY),
+        fee: demoData.doctors[0]?.consult.online ?? 0,
+        paymentMethod: "upi",
+        status: "completed",
+        createdAt: iso(now - 13 * DAY),
+      },
+    ],
+    profile: { ...demoData.profile },
+    familyMembers: demoData.familyMembers.map((member) => ({ ...member })),
+    addresses: demoData.addresses.map((address) => ({ ...address })),
+    savedPayments: demoData.savedPayments.map((item) => ({ ...item })),
+    reminders: demoData.reminderSeed.map((item): Reminder => {
+      const weekday = "weekday" in item ? item.weekday : undefined;
+      const dueInDays = "dueInDays" in item ? item.dueInDays : undefined;
+      return {
+        id: item.id,
+        patientId: item.patientId,
+        kind: item.kind as ReminderKind,
+        title: item.title,
+        detail: item.detail,
+        time: item.time,
+        repeat: item.repeat as ReminderRepeat,
+        weekday,
+        date: dueInDays !== undefined ? dayKey(new Date(now + dueInDays * DAY)) : undefined,
+        enabled: true,
+        done: [],
+      };
+    }),
+    reports: demoData.pastReports.map((item): LabReport => {
+      const collected = now - item.daysAgo * DAY;
+      return { id: item.id, testId: item.testId, labId: item.labId, patientId: item.patientId, collectedAt: iso(collected), reportedAt: iso(collected + DAY) };
+    }),
+    settings: {
+      notifications: { ...demoData.settingsSeed.notifications },
+      channels: { ...demoData.settingsSeed.channels },
+      privacy: { ...demoData.settingsSeed.privacy },
+    },
+    session: { signedOut: false },
     prototype: { failNextPayment: false },
   };
 }
@@ -301,6 +369,170 @@ export const journey = {
       if (getMedicine(line.medicineId)?.rule !== "otc") continue;
       journey.addToCart({ medicineId: line.medicineId, quantity: line.quantity, pharmacyId: line.pharmacyId });
     }
+  },
+
+  /**
+   * Pays for and confirms a booking. The "Next payment fails" prototype toggle makes it fail once,
+   * booking nothing, so the user can retry.
+   */
+  placeBooking(input: Omit<Booking, "id" | "status" | "createdAt" | "progress">): { ok: true; bookingId: string } | { ok: false } {
+    const current = getSnapshot();
+    if (current.prototype.failNextPayment) {
+      setState((s) => ({ ...s, prototype: { ...s.prototype, failNextPayment: false } }));
+      return { ok: false };
+    }
+    const id = nextId("BK", current.bookings.map((item) => item.id), 2041);
+    // Sample collection starts at "waiting for a technician", never at "assigned".
+    const booking: Booking = { ...input, id, status: "confirmed", ...(input.kind === "lab-test" ? { progress: 1 } : {}), createdAt: iso(Date.now()) };
+    setState((s) => ({ ...s, bookings: [booking, ...s.bookings] }));
+    return { ok: true, bookingId: id };
+  },
+
+  cancelBooking(id: string) {
+    setState((s) => ({
+      ...s,
+      bookings: s.bookings.map((item) => (item.id === id && item.status === "confirmed" ? { ...item, status: "cancelled" } : item)),
+    }));
+  },
+
+  /**
+   * Prototype control: the next sample-collection update (assigned, on the way, collected).
+   * The step after "collected" is the report, which completes the booking.
+   */
+  advanceBooking(id: string, steps: number) {
+    setState((s) => ({
+      ...s,
+      bookings: s.bookings.map((item) => {
+        if (item.id !== id || item.status !== "confirmed" || item.progress === undefined) return item;
+        const progress = item.progress + 1;
+        return progress >= steps - 1 ? { ...item, progress: steps, status: "completed" } : { ...item, progress };
+      }),
+      reports: s.reports.concat(
+        s.bookings
+          .filter((item) => item.id === id && item.kind === "lab-test" && item.progress !== undefined && item.progress + 1 >= steps - 1)
+          .filter((item) => !s.reports.some((report) => report.bookingId === item.id))
+          .map((item) => ({
+            id: `R${item.id.replace(/^BK/, "")}`,
+            testId: item.serviceId,
+            labId: item.providerId,
+            patientId: item.patientId,
+            collectedAt: item.slotAt,
+            reportedAt: iso(Date.now()),
+            bookingId: item.id,
+          })),
+      ),
+    }));
+  },
+
+  /** Prototype control: the visit or consult happened. */
+  completeBooking(id: string) {
+    setState((s) => ({
+      ...s,
+      bookings: s.bookings.map((item) => (item.id === id && item.status === "confirmed" ? { ...item, status: "completed" } : item)),
+    }));
+  },
+
+  /* ---------- profile and settings ---------- */
+
+  updateProfile(profile: Profile) {
+    setState((s) => ({
+      ...s,
+      profile,
+      // The account holder's own entry follows their name.
+      familyMembers: s.familyMembers.map((member) => (member.id === "self" ? { ...member, name: profile.name.split(" ")[0] ?? profile.name } : member)),
+    }));
+  },
+
+  addFamilyMember(member: Omit<FamilyMember, "id">): string {
+    const id = `member-${Date.now().toString(36)}`;
+    setState((s) => ({ ...s, familyMembers: [...s.familyMembers, { ...member, id }] }));
+    return id;
+  },
+
+  /** The account holder can't be removed; past bookings keep the name they were made with. */
+  removeFamilyMember(id: string) {
+    if (id === "self") return;
+    setState((s) => ({
+      ...s,
+      familyMembers: s.familyMembers.filter((member) => member.id !== id),
+      reminders: s.reminders.filter((reminder) => reminder.patientId !== id),
+    }));
+  },
+
+  addAddress(address: Omit<Address, "id">): string {
+    const id = `address-${Date.now().toString(36)}`;
+    setState((s) => ({ ...s, addresses: [...s.addresses, { ...address, id }] }));
+    return id;
+  },
+
+  /** The default address (the one checkout uses) can't be removed. */
+  removeAddress(id: string) {
+    setState((s) => (s.checkout.addressId === id ? s : { ...s, addresses: s.addresses.filter((address) => address.id !== id) }));
+  },
+
+  addUpi(upiId: string): string {
+    const id = `upi-${Date.now().toString(36)}`;
+    setState((s) => ({ ...s, savedPayments: [...s.savedPayments, { id, kind: "upi", label: upiId, detail: "UPI ID" }] }));
+    return id;
+  },
+
+  removePayment(id: string) {
+    setState((s) => ({ ...s, savedPayments: s.savedPayments.filter((item) => item.id !== id) }));
+  },
+
+  /** Checkout opens on the default method; a UPI ID is pre-filled. */
+  setDefaultPayment(id: string) {
+    setState((s) => {
+      const saved = s.savedPayments.find((item) => item.id === id);
+      if (!saved) return s;
+      return {
+        ...s,
+        savedPayments: [saved, ...s.savedPayments.filter((item) => item.id !== id)],
+        checkout: { ...s.checkout, paymentMethod: saved.kind, upiId: saved.kind === "upi" ? saved.label : s.checkout.upiId },
+      };
+    });
+  },
+
+  setSetting(group: keyof Settings, key: string, value: boolean) {
+    setState((s) => ({ ...s, settings: { ...s.settings, [group]: { ...s.settings[group], [key]: value } } }));
+  },
+
+  signOut() {
+    setState((s) => ({ ...s, session: { signedOut: true } }));
+  },
+
+  signIn() {
+    setState((s) => ({ ...s, session: { signedOut: false } }));
+  },
+
+  /* ---------- reminders ---------- */
+
+  addReminder(reminder: Omit<Reminder, "id" | "enabled" | "done">): string {
+    const id = `rem-${Date.now().toString(36)}`;
+    setState((s) => ({ ...s, reminders: [...s.reminders, { ...reminder, id, enabled: true, done: [] }] }));
+    return id;
+  },
+
+  setReminderEnabled(id: string, enabled: boolean) {
+    setState((s) => ({ ...s, reminders: s.reminders.map((item) => (item.id === id ? { ...item, enabled } : item)) }));
+  },
+
+  /** Tick a reminder off for a day, or untick it. */
+  toggleReminderDone(id: string, day: string) {
+    setState((s) => ({
+      ...s,
+      reminders: s.reminders.map((item) => {
+        if (item.id !== id) return item;
+        const done = item.done.some((entry) => entry.day === day)
+          ? item.done.filter((entry) => entry.day !== day)
+          : [...item.done, { day, at: iso(Date.now()) }];
+        return { ...item, done };
+      }),
+    }));
+  },
+
+  removeReminder(id: string) {
+    setState((s) => ({ ...s, reminders: s.reminders.filter((item) => item.id !== id) }));
   },
 
   setFailNextPayment(value: boolean) {

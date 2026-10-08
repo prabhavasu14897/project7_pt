@@ -6,6 +6,7 @@ import type { CardAction, CategoryKey } from "@/types/models";
 import { fillTemplate } from "@/lib/format";
 import { medicinePrimaryAction } from "@/lib/medicine";
 import { routes } from "@/lib/routes";
+import { catalogImage } from "@/lib/images";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { CategoryCard } from "@/components/marketplace/CategoryCard";
 import { ProductCard } from "@/components/marketplace/ProductCard";
@@ -136,6 +137,7 @@ export function ExploreScreen() {
           className="flex-1"
           title={item.title}
           href={item.href}
+          image={catalogImage(item.href)}
           subtitle={inOrder ? fillTemplate(orderStrings.inOrderNote, { id: inOrder.id }) : item.subtitle}
           icon={item.icon}
           tone={item.category}
@@ -157,6 +159,7 @@ export function ExploreScreen() {
           className="flex-1"
           name={item.title}
           href={item.href}
+          image={catalogImage(item.href)?.src}
           subtitle={item.specialty}
           verifiedLabel={item.verified ? ui.labels.verified : undefined}
           pendingLabel={item.verified ? undefined : strings.notVerified}
@@ -331,9 +334,14 @@ export function ExploreScreen() {
         ) : (
           // One comparable list in category order. Per-category counts live on the chips, so one-item groups
           // don't each need a heading.
-          <ul aria-label={strings.title} className="grid gap-3 lg:grid-cols-2 lg:gap-4">
-            {results.map((item) => (item.kind === "doctor" ? renderDoctor(item) : renderProduct(item)))}
-          </ul>
+          <section aria-labelledby="explore-results">
+            <h2 id="explore-results" className="sr-only">
+              {strings.resultsHeading}
+            </h2>
+            <ul className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+              {results.map((item) => (item.kind === "doctor" ? renderDoctor(item) : renderProduct(item)))}
+            </ul>
+          </section>
         )}
 
         {showProviders && (

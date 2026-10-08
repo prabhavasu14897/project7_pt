@@ -108,7 +108,8 @@ export function hasPrescriptionItems(order: Order): boolean {
 }
 
 /** Delivery stages with times; Rx orders start with a completed "Prescription verified" step. Ends in a failed step when cancelled or unpaid. */
-export function orderTimeline(order: Order): TimelineStep[] {
+/** `verifiedAt`: when the prescription behind an Rx order was approved, for the first step's timestamp. */
+export function orderTimeline(order: Order, verifiedAt?: string): TimelineStep[] {
   if (order.status === "payment-failed") {
     const failed = statuses.orderPaymentFailed;
     return [{ key: failed.key, label: failed.label, description: failed.description, state: "failed", timestamp: formatDateTime(order.placedAt) }];
@@ -130,7 +131,16 @@ export function orderTimeline(order: Order): TimelineStep[] {
 
   const verified = statuses.orderVerifiedStep;
   const withRx: TimelineStep[] = hasPrescriptionItems(order)
-    ? [{ key: verified.key, label: verified.label, description: verified.description, state: "complete" }, ...steps]
+    ? [
+        {
+          key: verified.key,
+          label: verified.label,
+          description: verified.description,
+          state: "complete",
+          timestamp: verifiedAt ? formatDateTime(verifiedAt) : undefined,
+        },
+        ...steps,
+      ]
     : steps;
 
   if (order.status !== "cancelled") return withRx;
@@ -179,4 +189,11 @@ export function expectedArrival(order: Order): string | undefined {
   if (order.slotId === "later" && order.laterSlot) return fillTemplate(strings.arrivingSlot, { slot: order.laterSlot });
   const slot = productConfig.demoData.deliverySlots.find((item) => item.id === order.slotId);
   return slot ? fillTemplate(strings.arrivingSlot, { slot: `${slot.label}, ${slot.detail}` }) : undefined;
+}
+
+/** When the prescription behind an order was approved, if the order has one. */
+export function orderVerifiedAt(state: JourneyState, order: Order): string | undefined {
+  const prescriptionId = order.lines.find((line) => line.prescriptionId)?.prescriptionId;
+  const prescription = prescriptionId ? findPrescription(state, prescriptionId) : undefined;
+  return [...(prescription?.history ?? [])].reverse().find((event) => event.status === "approved")?.at;
 }

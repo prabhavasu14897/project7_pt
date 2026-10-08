@@ -8,26 +8,22 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { Notice } from "@/components/feedback/Notice";
 import { PrototypeControls } from "@/components/feedback/PrototypeControls";
 import { PriceBreakdown } from "@/components/marketplace/PriceBreakdown";
-import { MobileActionBar } from "@/components/navigation/MobileActionBar";
+import { MobileActionBar, PayTotal } from "@/components/navigation/MobileActionBar";
 import { StepIndicator } from "@/components/navigation/StepIndicator";
-import { Price } from "@/components/ui/Price";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
-import { Input } from "@/components/ui/Input";
-import { RadioCardGroup } from "@/components/ui/RadioCardGroup";
-import { Select } from "@/components/ui/Select";
 import { journey, useJourney } from "@/features/journey/store";
+import { PaymentMethodPicker, paymentReady } from "./PaymentMethodPicker";
 import { computeTotals, toOrderLines } from "@/features/journey/pricing";
 import { blockedLines, priceRows } from "@/features/journey/selectors";
 
-const { content, demoData } = productConfig;
+const { content } = productConfig;
 const strings = content.payment;
 const cartStrings = content.cart;
 
 /** How long the simulated bank round-trip takes. */
 const PROCESSING_MS = 2200;
-const UPI_PATTERN = /^[\w.-]{2,}@[a-zA-Z]{2,}$/;
 
 /** `done`: paid and navigating to tracking; the emptied cart must not flash the empty state. */
 type Phase = "idle" | "processing" | "failed" | "done";
@@ -61,7 +57,7 @@ export function PaymentScreen() {
   }
 
   function pay() {
-    if (method === "upi" && !UPI_PATTERN.test(state.checkout.upiId.trim())) {
+    if (!paymentReady(method, state.checkout.upiId)) {
       setUpiError(strings.upiError);
       return;
     }
@@ -89,64 +85,13 @@ export function PaymentScreen() {
       <div className="grid gap-5 lg:grid-cols-12 lg:items-start lg:gap-8">
         <div className="flex flex-col gap-5 lg:col-span-8">
           {phase === "failed" && (
-            <Notice tone="danger" icon="alert" title={strings.failedTitle} live>
+            <Notice tone="danger" icon="alert" title={strings.failedTitle}>
               {strings.failedBody}
             </Notice>
           )}
 
           <Card padding="lg">
-            <RadioCardGroup
-              legend={strings.methodTitle}
-              value={method}
-              onChange={(paymentMethod) => {
-                journey.updateCheckout({ paymentMethod });
-                setUpiError(undefined);
-              }}
-              options={demoData.paymentMethods.map((item) => ({
-                value: item.id,
-                label: item.label,
-                description: item.detail,
-                icon: item.icon,
-                disabled: busy,
-              }))}
-              renderSelected={(value) => {
-                if (value === "upi")
-                  return (
-                    <Input
-                      label={strings.upiLabel}
-                      placeholder={strings.upiPlaceholder}
-                      hint={strings.upiHint}
-                      error={upiError}
-                      value={state.checkout.upiId}
-                      onChange={(event) => {
-                        journey.updateCheckout({ upiId: event.target.value });
-                        setUpiError(undefined);
-                      }}
-                      inputMode="email"
-                      autoComplete="off"
-                      disabled={busy}
-                    />
-                  );
-                if (value === "card")
-                  return (
-                    <p className="flex items-center gap-2 text-sm text-text">
-                      <Icon name="card" size={16} className="text-text-muted" />
-                      {strings.savedCard}: <span className="font-semibold">{demoData.savedCard}</span>
-                    </p>
-                  );
-                if (value === "wallet")
-                  return (
-                    <Select
-                      label={strings.walletLabel}
-                      layout="stacked"
-                      value={state.checkout.wallet}
-                      options={demoData.wallets.map((wallet) => ({ value: wallet, label: wallet }))}
-                      onChange={(wallet) => journey.updateCheckout({ wallet })}
-                    />
-                  );
-                return null;
-              }}
-            />
+            <PaymentMethodPicker upiError={upiError} onEdit={() => setUpiError(undefined)} disabled={busy} />
           </Card>
         </div>
 
@@ -160,7 +105,7 @@ export function PaymentScreen() {
               freeLabel={cartStrings.free}
             />
             {busy && (
-              <Notice tone="info" icon="clock" title={strings.processingTitle} live>
+              <Notice tone="info" icon="clock" title={strings.processingTitle}>
                 {strings.processingBody}
               </Notice>
             )}
@@ -188,7 +133,12 @@ export function PaymentScreen() {
         </div>
       </div>
 
-      <MobileActionBar summary={<Price amount={totals.total} size="lg" />}>
+      {/* Always mounted, so processing and failure are announced reliably. */}
+      <p role="status" className="sr-only">
+        {busy ? strings.processingTitle : phase === "failed" ? strings.failedTitle : ""}
+      </p>
+
+      <MobileActionBar summary={<PayTotal label={cartStrings.total} amount={totals.total} />}>
         <Button leftIcon="lock" loading={busy} onClick={pay}>
           {phase === "failed" ? strings.retry : strings.payShort}
         </Button>

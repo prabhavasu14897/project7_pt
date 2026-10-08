@@ -32,7 +32,7 @@ export function LocationPicker({ label, value, options, onChange, display = "com
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={cn(
-          "h-10 max-w-[13rem] cursor-pointer appearance-none truncate rounded-full border border-border bg-surface pl-8 pr-8 text-sm font-semibold text-text",
+          "h-11 max-w-[13rem] cursor-pointer appearance-none truncate rounded-full border border-border bg-surface pl-8 pr-8 text-sm font-semibold text-text",
           "hover:border-border-strong focus:outline-none focus-visible:border-primary-dark focus-visible:ring-3 focus-visible:ring-primary-soft",
         )}
       >

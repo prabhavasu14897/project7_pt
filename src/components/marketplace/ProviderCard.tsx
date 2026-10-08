@@ -68,7 +68,7 @@ export function ProviderCard({
                 <Link
                   href={href}
                   className={cn(
-                    "rounded-sm hover:text-primary-deep",
+                    "-my-3 inline-block rounded-sm py-3 hover:text-primary-deep",
                     linkCoversCard && "after:absolute after:inset-0 after:rounded-lg after:content-['']",
                   )}
                 >

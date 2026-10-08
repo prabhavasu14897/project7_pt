@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type InputHTMLAttributes } from "react";
+import { useId, type InputHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, type IconName } from "./Icon";
 
@@ -11,6 +11,8 @@ interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size">
   hint?: string;
   error?: string;
   leftIcon?: IconName;
+  /** A control inside the field's right edge, e.g. a show/hide password button. */
+  trailing?: ReactNode;
   optionalLabel?: string;
   containerClassName?: string;
 }
@@ -21,6 +23,7 @@ export function Input({
   hint,
   error,
   leftIcon,
+  trailing,
   optionalLabel,
   id,
   className,
@@ -61,10 +64,12 @@ export function Input({
               ? "border-danger-text focus:border-danger-text focus:ring-danger-soft"
               : "border-border hover:border-border-strong focus:border-primary-dark focus:ring-primary-soft",
             leftIcon && "pl-11",
+            trailing && "pr-14",
             className,
           )}
           {...rest}
         />
+        {trailing && <div className="absolute inset-y-0 right-0.5 flex items-center">{trailing}</div>}
       </div>
       {error && (
         <p id={errorId} className="flex items-start gap-1.5 text-sm text-danger-text">

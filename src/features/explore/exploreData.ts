@@ -149,8 +149,17 @@ const healthPackages: ProductItem[] = demoData.healthPackages.map((item) => ({
   searchText: searchable(item.name, item.mode),
 }));
 
+/** Concern and category words, so people can search by symptom ("fever") or service ("lab tests"), not only by name. */
+function vocabulary(item: CatalogItem): string {
+  const concernLabels = item.concerns.map((key) => strings.concerns.find((concern) => concern.key === key)?.label ?? key);
+  const category = categories.find((entry) => entry.key === item.category)?.label;
+  return searchable(...concernLabels, ...item.concerns, category);
+}
+
 /** Every item, in category order. */
-export const catalog: readonly CatalogItem[] = [...medicines, ...labTests, ...doctors, ...homeCare, ...healthPackages];
+export const catalog: readonly CatalogItem[] = [...medicines, ...labTests, ...doctors, ...homeCare, ...healthPackages].map(
+  (item) => ({ ...item, searchText: `${item.searchText} ${vocabulary(item)}` }),
+);
 
 /** Pharmacies and labs, nearest first. */
 export const nearbyProviders: readonly NearbyProvider[] = [

@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { productConfig } from "@config/product.config";
 import { fillTemplate } from "@/lib/format";
+import { catalogImage } from "@/lib/images";
 import { routes } from "@/lib/routes";
 import { Notice } from "@/components/feedback/Notice";
 import { ProviderCard } from "@/components/marketplace/ProviderCard";
@@ -41,6 +43,7 @@ function Detail({ medicine }: { medicine: Medicine }) {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState<{ count: number; pharmacy: string } | null>(null);
   const [tab, setTab] = useState<InfoTab>("description");
+  const photo = catalogImage(routes.medicine(medicine.id));
 
   const order = orderContaining(medicine);
   const restricted = medicine.rule === "restricted";
@@ -155,7 +158,7 @@ function Detail({ medicine }: { medicine: Medicine }) {
       <nav aria-label={strings.breadcrumbLabel}>
         <ol className="flex flex-wrap items-center gap-1.5 text-sm text-text-muted">
           <li>
-            <Link href={routes.explore()} className="rounded-sm hover:text-text">
+            <Link href={routes.explore()} className="inline-flex min-h-11 items-center rounded-sm hover:text-text">
               {content.explore.title}
             </Link>
           </li>
@@ -163,7 +166,7 @@ function Detail({ medicine }: { medicine: Medicine }) {
             <Icon name="chevron-right" size={14} />
           </li>
           <li>
-            <Link href={listingHref} className="rounded-sm hover:text-text">
+            <Link href={listingHref} className="inline-flex min-h-11 items-center rounded-sm hover:text-text">
               {listStrings.title}
             </Link>
           </li>
@@ -179,8 +182,8 @@ function Detail({ medicine }: { medicine: Medicine }) {
       {/* Desktop: summary and info on the left, purchase panel on the right. Phones read summary → purchase → info. */}
       <div className="grid gap-5 lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:items-start lg:gap-8">
         <Card padding="lg" className="flex flex-col gap-5 sm:flex-row lg:col-span-7">
-          <div className="flex size-28 shrink-0 items-center justify-center self-start rounded-lg bg-[var(--cn-tone-medicines-bg)] text-[var(--cn-tone-medicines-fg)] sm:size-36">
-            <Icon name={medicine.form} size={56} strokeWidth={1.6} />
+          <div className="relative flex size-28 shrink-0 items-center justify-center self-start overflow-hidden rounded-lg bg-[var(--cn-tone-medicines-bg)] text-[var(--cn-tone-medicines-fg)] sm:size-36">
+            {photo ? <Image src={photo.src} alt={photo.alt} fill sizes="144px" className="bg-surface object-contain" /> : <Icon name={medicine.form} size={56} strokeWidth={1.6} />}
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-3">
             <div className="flex flex-col gap-1.5">

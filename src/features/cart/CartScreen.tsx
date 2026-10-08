@@ -8,9 +8,8 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { Notice } from "@/components/feedback/Notice";
 import { CartItem } from "@/components/marketplace/CartItem";
 import { PriceBreakdown } from "@/components/marketplace/PriceBreakdown";
-import { MobileActionBar } from "@/components/navigation/MobileActionBar";
+import { MobileActionBar, PayTotal } from "@/components/navigation/MobileActionBar";
 import { StepIndicator } from "@/components/navigation/StepIndicator";
-import { Price } from "@/components/ui/Price";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
@@ -60,7 +59,7 @@ export function CartScreen() {
     <div className="container-page flex flex-col gap-5 pb-12 pt-4 sm:pt-6 lg:pb-16 lg:pt-8">
       <div className="flex flex-col gap-3">
         <StepIndicator steps={content.checkout.steps} current={0} label={content.checkout.stepsLabel} />
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className="flex flex-col gap-1">
           <h1 className="text-h1 font-extrabold tracking-tight text-text">{strings.title}</h1>
           <p className="text-sm font-semibold text-text-muted tabular">
             {fillTemplate(strings.itemCount, { count: lines.reduce((sum, line) => sum + line.quantity, 0) })}
@@ -72,11 +71,11 @@ export function CartScreen() {
         <div className="flex flex-col gap-4 lg:col-span-8">
           {groupByPharmacy(lines).map((group) => (
             <Card key={group.pharmacyId} as="section" padding="lg" aria-label={fillTemplate(strings.fromPharmacy, { pharmacy: pharmacyName(group.pharmacyId) })}>
-              <p className="flex items-center gap-2 border-b border-border pb-3 text-sm text-text-muted">
+              <h2 className="flex items-center gap-2 border-b border-border pb-3 text-sm font-normal text-text-muted">
                 <Icon name="location" size={16} className="shrink-0 text-primary-dark" />
                 <span className="font-semibold text-text">{fillTemplate(strings.fromPharmacy, { pharmacy: pharmacyName(group.pharmacyId) })}</span>
                 <span>· {demoData.pharmacies.find((item) => item.id === group.pharmacyId)?.eta}</span>
-              </p>
+              </h2>
               <ul className="divide-y divide-border">
                 {group.lines.map((line) => {
                   const medicine = getMedicine(line.medicineId);
@@ -175,7 +174,7 @@ export function CartScreen() {
         </Card>
       </div>
 
-      <MobileActionBar summary={<Price amount={totals.total} size="lg" />}>
+      <MobileActionBar summary={<PayTotal label={strings.total} amount={totals.total} />}>
         <Button href={blocked.length > 0 ? undefined : "/checkout"} disabled={blocked.length > 0} rightIcon="chevron-right">
           {strings.checkout}
         </Button>

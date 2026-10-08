@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Price } from "@/components/ui/Price";
 import { cn } from "@/lib/cn";
 
 interface MobileActionBarProps {
@@ -24,5 +25,15 @@ export function MobileActionBar({ summary, children, className }: MobileActionBa
       <div className="min-w-0 flex-1">{summary}</div>
       <div className="shrink-0">{children}</div>
     </div>
+  );
+}
+
+/** Labelled amount for the bar's left side, so the number never stands alone. */
+export function PayTotal({ label, amount }: { label: string; amount: number }) {
+  return (
+    <span className="flex flex-col">
+      <span className="text-xs text-text-muted">{label}</span>
+      <Price amount={amount} size="lg" />
+    </span>
   );
 }

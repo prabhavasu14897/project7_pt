@@ -5,7 +5,7 @@ import { fillTemplate } from "@/lib/format";
 import { medicinePrimaryAction, ruleBadge } from "@/lib/medicine";
 import { routes } from "@/lib/routes";
 import { buildActiveOrder } from "@/features/home/homeData";
-import type { Medicine } from "./medicineData";
+import { isOrderable, type Medicine, type MedicineOffer } from "./medicineData";
 
 const { ui, content } = productConfig;
 const orderStrings = content.home.activeOrder;
@@ -40,8 +40,9 @@ export function medicineStatusBadge(medicine: Medicine): { label: string; tone: 
 /**
  * The one action a medicine card offers. Safety order matters:
  * in review → Track order; restricted → Consult a doctor; prescription → Upload; out of stock → disabled; OTC → Add/Added.
+ * `offer` pins the card to one pharmacy (e.g. on that pharmacy's page); it defaults to the cheapest orderable one.
  */
-export function medicineCardAction(medicine: Medicine, cart: Cart): CardAction {
+export function medicineCardAction(medicine: Medicine, cart: Cart, offer: MedicineOffer | null = medicine.defaultOffer): CardAction {
   const order = orderContaining(medicine);
   if (order) {
     return { label: orderStrings.track, href: order.href, variant: "outline", ariaLabel: named(orderStrings.track, medicine.name) };
@@ -56,13 +57,14 @@ export function medicineCardAction(medicine: Medicine, cart: Cart): CardAction {
     // Short visible label keeps card footers on one line; the accessible name keeps the full action.
     return {
       label: ui.actions.uploadShort,
-      href: routes.prescriptionUpload(medicine.id, medicine.defaultOffer?.pharmacyId),
+      href: routes.prescriptionUpload(medicine.id, offer?.pharmacyId),
       variant: "outline",
       ariaLabel: named(primary.label, medicine.name),
     };
   }
-  if (!medicine.defaultOffer) {
-    const label = content.medicines.availability["out-of-stock"];
+  if (!offer || !isOrderable(offer)) {
+    // An unverified pharmacy can't fulfil orders even with stock; say why rather than claiming it's out of stock.
+    const label = offer && !offer.verified ? content.providerDetail.pharmacy.notOrderable : content.medicines.availability["out-of-stock"];
     return { label, disabled: true, variant: "outline", ariaLabel: named(label, medicine.name) };
   }
   const added = cart.has(medicine.id);
@@ -71,6 +73,6 @@ export function medicineCardAction(medicine: Medicine, cart: Cart): CardAction {
     variant: added ? "secondary" : "primary",
     pressed: added,
     ariaLabel: named(primary.label, medicine.name),
-    onClick: () => (added ? cart.remove(medicine.id) : cart.add(medicine.id, 1, medicine.defaultOffer?.pharmacyId)),
+    onClick: () => (added ? cart.remove(medicine.id) : cart.add(medicine.id, 1, offer.pharmacyId)),
   };
 }

@@ -66,15 +66,23 @@ export function PrescriptionStatusScreen({ id }: { id: string }) {
       <div className="grid gap-5 lg:grid-cols-12 lg:items-start lg:gap-8">
         {/* Primary column: the status, its next action, then the timeline. The status is stated once, in the notice. */}
         <div className="flex min-w-0 flex-col gap-5 lg:col-span-7">
+          {/* Always mounted, so a change of status is announced reliably. */}
+          <p role="status" className="sr-only">
+            {current.status === "approved"
+              ? strings.approved.title
+              : current.status === "needs-clarification"
+                ? strings.clarification.title
+                : strings.underReview.title}
+          </p>
           <Card padding="lg" className="flex flex-col gap-5">
             {current.status === "under-review" && (
-              <Notice tone="warning" icon="clock" title={strings.underReview.title} live>
+              <Notice tone="warning" icon="clock" title={strings.underReview.title}>
                 {fillTemplate(strings.underReview.body, { pharmacy })}
               </Notice>
             )}
             {current.status === "approved" && (
               <>
-                <Notice tone="success" icon="verified" title={strings.approved.title} live>
+                <Notice tone="success" icon="verified" title={strings.approved.title}>
                   {fillTemplate(strings.approved.body, { when: approvedAt ? formatWhen(approvedAt, ui.time) : "" })}
                 </Notice>
                 <Button href={`/prescriptions/${current.id}/pharmacy`} size="lg" fullWidth rightIcon="chevron-right">
@@ -84,7 +92,7 @@ export function PrescriptionStatusScreen({ id }: { id: string }) {
             )}
             {current.status === "needs-clarification" && (
               <>
-                <Notice tone="warning" icon="alert" title={strings.clarification.title} live>
+                <Notice tone="warning" icon="alert" title={strings.clarification.title}>
                   <p>{strings.clarification.body}</p>
                   {current.note && (
                     <p className="mt-2">
@@ -117,7 +125,11 @@ export function PrescriptionStatusScreen({ id }: { id: string }) {
               {current.medicineIds.map((medicineId) => {
                 const medicine = getMedicine(medicineId);
                 if (!medicine) return null;
-                const rule = ruleBadge(medicine.rule);
+                // Once approved, the line says so; before that it shows the dispensing rule.
+                const rule =
+                  current.status === "approved"
+                    ? { label: content.cart.prescriptionApproved, tone: "success" as const, icon: "verified" as const }
+                    : ruleBadge(medicine.rule);
                 return (
                   <li key={medicineId} className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
                     <span className="flex flex-col">

@@ -1,5 +1,11 @@
-import { HomeScreen } from "@/features/home/HomeScreen";
+import type { Metadata } from "next";
+import { productConfig } from "@config/product.config";
+import { WelcomeScreen } from "@/features/welcome/WelcomeScreen";
 
-export default function HomePage() {
-  return <HomeScreen />;
+const { brand } = productConfig;
+
+export const metadata: Metadata = { title: { absolute: `${brand.name} · ${brand.tagline}` } };
+
+export default function WelcomePage() {
+  return <WelcomeScreen />;
 }

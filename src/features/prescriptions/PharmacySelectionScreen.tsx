@@ -68,6 +68,8 @@ export function PharmacySelectionScreen({ id }: { id: string }) {
   const preferred = options.find((option) => option.eligible && option.id === prescription?.pharmacyId) ?? options.find((option) => option.eligible);
   const [selectedId, setSelectedId] = useState<string | undefined>(preferred?.id);
   const selected = options.find((option) => option.id === selectedId && option.eligible);
+  const eligible = options.filter((option) => option.eligible);
+  const excludedCount = options.length - eligible.length;
 
   if (!prescription) {
     return (
@@ -96,46 +98,45 @@ export function PharmacySelectionScreen({ id }: { id: string }) {
             <h2 id="pharmacy-list" className="sr-only">
               {strings.listLabel}
             </h2>
-            {options.some((option) => option.eligible) ? (
-              <ul className="flex flex-col gap-3">
-                {options.map((option) => {
-                  const isSelected = option.id === selected?.id;
-                  return (
-                    <li key={option.id}>
-                      <ProviderCard
-                        name={option.name}
-                        imageShape="rounded"
-                        verifiedLabel={option.verified ? ui.labels.verified : undefined}
-                        pendingLabel={option.verified ? undefined : content.explore.notVerified}
-                        subtitle={
-                          option.missing.length > 0
-                            ? fillTemplate(strings.missing, { items: option.missing.join(", ") })
-                            : !option.verified
-                              ? content.medicines.notSelectable
-                              : undefined
-                        }
-                        rating={{ value: option.rating, count: option.reviews }}
-                        meta={[
-                          { icon: "delivery", label: option.eta },
-                          { icon: "distance", label: option.distance },
-                        ]}
-                        price={option.eligible ? { amount: option.total } : undefined}
-                        selected={isSelected}
-                        action={{
-                          label: isSelected ? ui.actions.selected : ui.actions.select,
-                          ariaLabel: fillTemplate(ui.actions.itemLabel, {
-                            action: isSelected ? ui.actions.selected : ui.actions.select,
-                            item: option.name,
-                          }),
-                          variant: isSelected ? undefined : "outline",
-                          disabled: !option.eligible,
-                          onClick: () => setSelectedId(option.id),
-                        }}
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
+            {eligible.length > 0 ? (
+              <>
+                {/* Only pharmacies that can fill the whole prescription are offered; the rest collapse to one line. */}
+                <ul className="flex flex-col gap-3">
+                  {eligible.map((option) => {
+                    const isSelected = option.id === selected?.id;
+                    return (
+                      <li key={option.id}>
+                        <ProviderCard
+                          name={option.name}
+                          imageShape="rounded"
+                          verifiedLabel={ui.labels.verified}
+                          rating={{ value: option.rating, count: option.reviews }}
+                          meta={[
+                            { icon: "delivery", label: option.eta },
+                            { icon: "distance", label: option.distance },
+                          ]}
+                          price={{ amount: option.total }}
+                          selected={isSelected}
+                          action={{
+                            label: isSelected ? ui.actions.selected : ui.actions.select,
+                            ariaLabel: fillTemplate(ui.actions.itemLabel, {
+                              action: isSelected ? ui.actions.selected : ui.actions.select,
+                              item: option.name,
+                            }),
+                            variant: isSelected ? undefined : "outline",
+                            onClick: () => setSelectedId(option.id),
+                          }}
+                        />
+                      </li>
+                    );
+                  })}
+                </ul>
+                {excludedCount > 0 && (
+                  <p className="text-sm text-text-muted">
+                    {fillTemplate(excludedCount === 1 ? strings.excludedOne : strings.excludedMany, { count: excludedCount })}
+                  </p>
+                )}
+              </>
             ) : (
               <EmptyState size="inline" icon="location" title={strings.noneTitle} description={strings.noneDescription} />
             )}

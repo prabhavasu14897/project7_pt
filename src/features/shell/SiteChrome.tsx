@@ -12,14 +12,16 @@ import { CartProvider, useCart } from "@/features/cart/CartProvider";
 const { brand, navigation, ui, demoData, content } = productConfig;
 
 /** Routes that show the search field under the brand row on mobile. */
-const mobileSearchRoutes = ["/", "/foundation"];
+const mobileSearchRoutes = [productConfig.routes.home, "/foundation"];
 /** Routes with their own page-level search, where the header search would duplicate it. */
 const pageSearchRoutes = ["/explore"];
+/** Focused entry screens: logo only, no marketplace header, search or bottom nav. */
+const focusedRoutes: string[] = [productConfig.routes.welcome, productConfig.routes.signIn];
 
 function resolveActiveKey(pathname: string): string | undefined {
   const all = [...navigation.mobile, ...navigation.headerActions];
-  if (pathname === "/") return "home";
-  return all.find((item) => item.href !== "/" && pathname.startsWith(item.href))?.key;
+  // Whole path segments only, so /home-care never marks Home as active.
+  return all.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.key;
 }
 
 /** Wires config + routing into the shared Header and BottomNav. Page-level orchestration, not a reusable UI part. */
@@ -41,12 +43,21 @@ function Chrome({ children }: { children: ReactNode }) {
     action.key === "cart" ? { ...action, count: cart.count } : action,
   );
 
+  if (focusedRoutes.includes(pathname)) {
+    return (
+      <main id="main" tabIndex={-1} className="min-h-dvh focus:outline-none">
+        {children}
+      </main>
+    );
+  }
+
   return (
     <AppShell
       skipLabel={ui.header.skipToContent}
       header={
         <Header
           brandName={brand.name}
+          homeHref={productConfig.routes.home}
           navItems={navigation.desktop}
           navLabel={ui.header.primaryNav}
           activeKey={activeKey}

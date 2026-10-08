@@ -20,7 +20,7 @@ import {
   summariseItems,
   type StatusBadge,
 } from "@/features/journey/selectors";
-import type { Order, Prescription } from "@/features/journey/types";
+import type { Booking, Order, Prescription } from "@/features/journey/types";
 import { getMedicine } from "@/features/medicines/medicineData";
 
 const { content, categories, ui } = productConfig;
@@ -93,6 +93,33 @@ function fromOrder(order: Order, reorder: (id: string) => void): Entry {
   };
 }
 
+const bookingBadges: Record<Booking["status"], StatusBadge> = {
+  confirmed: { label: content.bookingConfirmation.confirmedTitle, tone: "primary", icon: "schedule" },
+  completed: { label: content.bookingConfirmation.completedTitle, tone: "success", icon: "check" },
+  cancelled: { label: content.bookingConfirmation.cancelledTitle, tone: "neutral", icon: "close" },
+};
+
+/** Appointments sit alongside orders: confirmed ones are ongoing until they happen. */
+function fromBooking(booking: Booking): Entry {
+  const kind = content.booking.kinds[booking.kind];
+  const mode =
+    booking.mode === "home" ? content.booking.collection : content.doctorDetail.consultTypes[booking.mode].label;
+  return {
+    key: booking.id,
+    at: booking.createdAt,
+    heading: fillTemplate(strings.bookingTitle, { kind, id: booking.id }),
+    context: `${formatDateTime(booking.slotAt)} · ${formatPrice(booking.fee)}`,
+    status: bookingBadges[booking.status],
+    items: booking.kind === "doctor" ? `${booking.title} · ${mode}` : booking.title,
+    description: booking.kind === "doctor" ? undefined : booking.providerName,
+    action: {
+      label: booking.status === "confirmed" ? strings.viewBooking : strings.viewDetails,
+      href: `/bookings/${booking.id}`,
+      variant: booking.status === "confirmed" ? "primary" : "outline",
+    },
+  };
+}
+
 export function OrdersScreen() {
   const state = useJourney();
   const router = useRouter();
@@ -108,10 +135,15 @@ export function OrdersScreen() {
   const openRequests = state.prescriptions.filter((item) => !ordered.has(item.id)).map(fromPrescription);
 
   const byNewest = (a: Entry, b: Entry) => b.at.localeCompare(a.at);
-  const ongoing = [...openRequests, ...state.orders.filter(isOngoing).map((order) => fromOrder(order, reorder))].sort(byNewest);
+  const ongoing = [
+    ...openRequests,
+    ...state.orders.filter(isOngoing).map((order) => fromOrder(order, reorder)),
+    ...state.bookings.filter((booking) => booking.status === "confirmed").map(fromBooking),
+  ].sort(byNewest);
   const past = state.orders
     .filter((order) => !isOngoing(order))
     .map((order) => fromOrder(order, reorder))
+    .concat(state.bookings.filter((booking) => booking.status !== "confirmed").map(fromBooking))
     .sort(byNewest);
   const entries = tab === "ongoing" ? ongoing : past;
 

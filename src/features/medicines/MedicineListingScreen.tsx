@@ -5,6 +5,7 @@ import { productConfig } from "@config/product.config";
 import type { MetaItem } from "@/types/models";
 import { fillTemplate } from "@/lib/format";
 import { routes } from "@/lib/routes";
+import { catalogImage } from "@/lib/images";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { CategoryCard } from "@/components/marketplace/CategoryCard";
 import { FilterBar } from "@/components/marketplace/FilterBar";
@@ -130,6 +131,7 @@ export function MedicineListingScreen() {
         />
       </div>
 
+      <h2 className="sr-only">{strings.resultsHeading}</h2>
       {results.length > 0 ? (
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
           {results.map((medicine) => {
@@ -141,6 +143,7 @@ export function MedicineListingScreen() {
                   className="flex-1"
                   title={medicine.name}
                   href={medicine.href}
+                  image={catalogImage(medicine.href)}
                   subtitle={order ? fillTemplate(orderStrings.inOrderNote, { id: order.id }) : medicine.pack}
                   icon={medicine.form}
                   tone="medicines"

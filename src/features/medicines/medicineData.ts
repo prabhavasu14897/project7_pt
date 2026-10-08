@@ -97,6 +97,15 @@ export const medicines: readonly Medicine[] = demoData.medicines.map((medicine) 
   };
 });
 
+/** Shopper-facing name for a concern tag, e.g. "fever" → "Fever & Cold". */
+function concernLabel(key: string): string {
+  return (
+    productConfig.content.medicines.categoryFilters.find((item) => item.value === key)?.label ??
+    productConfig.content.explore.concerns.find((item) => item.key === key)?.label ??
+    key
+  );
+}
+
 export function getMedicine(id: string): Medicine | undefined {
   return medicines.find((medicine) => medicine.id === id);
 }
@@ -117,7 +126,8 @@ export interface MedicineFilter {
 export function filterMedicines(filter: MedicineFilter): Medicine[] {
   const words = filter.query.toLowerCase().split(/\s+/).filter(Boolean);
   const matching = medicines.filter((medicine) => {
-    const text = `${medicine.name} ${medicine.pack} ${medicine.manufacturer} ${medicine.uses.join(" ")}`.toLowerCase();
+    const concernLabels = medicine.concerns.map((key) => concernLabel(key));
+    const text = `${medicine.name} ${medicine.pack} ${medicine.manufacturer} ${medicine.uses.join(" ")} ${medicine.concerns.join(" ")} ${concernLabels.join(" ")}`.toLowerCase();
     return (
       words.every((word) => text.includes(word)) &&
       (filter.category === "all" || medicine.concerns.includes(filter.category)) &&

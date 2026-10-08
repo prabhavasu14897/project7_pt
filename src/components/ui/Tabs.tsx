@@ -34,12 +34,12 @@ const listClasses: Record<TabsVariant, string> = {
 
 const tabClasses: Record<TabsVariant, { base: string; active: string; idle: string }> = {
   segmented: {
-    base: "h-10 flex-1 rounded-md px-5 text-sm font-semibold sm:flex-none",
+    base: "h-11 flex-1 rounded-md px-5 text-sm font-semibold sm:flex-none",
     active: "bg-surface text-primary-deep shadow-card",
     idle: "text-text-muted hover:text-text",
   },
   underline: {
-    base: "relative -mb-px h-11 shrink-0 border-b-2 text-sm font-semibold",
+    base: "relative -mb-px h-11 shrink-0 border-b-2 px-1 text-sm font-semibold",
     active: "border-primary-dark text-primary-deep",
     idle: "border-transparent text-text-muted hover:text-text",
   },
@@ -111,6 +111,7 @@ export function Tabs<T extends string>({
             )}
           >
             {item.label}
+            {item.count !== undefined && " "}
             {item.count !== undefined && (
               <span
                 className={cn(

@@ -6,6 +6,7 @@ import type { CardAction } from "@/types/models";
 import { medicinePrimaryAction } from "@/lib/medicine";
 import { fillTemplate } from "@/lib/format";
 import { routes } from "@/lib/routes";
+import { catalogImage } from "@/lib/images";
 import { OrderStatusCard } from "@/components/healthcare/OrderStatusCard";
 import { CategoryCard } from "@/components/marketplace/CategoryCard";
 import { ProductCard } from "@/components/marketplace/ProductCard";
@@ -138,6 +139,7 @@ export function HomeScreen() {
                   className="flex-1"
                   title={item.title}
                   href={item.href}
+                  image={catalogImage(item.href)}
                   subtitle={order ? fillTemplate(home.activeOrder.inOrderNote, { id: order.id }) : item.subtitle}
                   icon={item.icon}
                   tone={item.tone}
@@ -177,6 +179,7 @@ export function HomeScreen() {
                   className="flex-1"
                   name={provider.name}
                   href={provider.href}
+                  image={catalogImage(provider.href)?.src}
                   subtitle={provider.subtitle}
                   imageShape={provider.imageShape}
                   verifiedLabel={provider.verified ? ui.labels.verified : undefined}

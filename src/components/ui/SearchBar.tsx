@@ -79,7 +79,7 @@ export function SearchBar({
           type="button"
           onClick={() => update("")}
           aria-label={strings.clear}
-          className="absolute right-1 top-1/2 inline-flex size-10 -translate-y-1/2 items-center justify-center rounded-md text-text-muted hover:bg-surface-muted hover:text-text"
+          className="absolute right-1 top-1/2 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-text-muted hover:bg-surface-muted hover:text-text"
         >
           <Icon name="close" size={18} />
         </button>

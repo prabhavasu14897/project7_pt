@@ -5,9 +5,8 @@ import { formatPrice } from "@/lib/format";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Notice } from "@/components/feedback/Notice";
 import { PriceBreakdown } from "@/components/marketplace/PriceBreakdown";
-import { MobileActionBar } from "@/components/navigation/MobileActionBar";
+import { MobileActionBar, PayTotal } from "@/components/navigation/MobileActionBar";
 import { StepIndicator } from "@/components/navigation/StepIndicator";
-import { Price } from "@/components/ui/Price";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { RadioCardGroup } from "@/components/ui/RadioCardGroup";
@@ -56,7 +55,7 @@ export function CheckoutScreen() {
               columns={2}
               value={state.checkout.addressId}
               onChange={(addressId) => journey.updateCheckout({ addressId })}
-              options={demoData.addresses.map((address) => ({
+              options={state.addresses.map((address) => ({
                 value: address.id,
                 label: address.label,
                 description: `${address.line1}, ${address.line2}`,
@@ -124,7 +123,7 @@ export function CheckoutScreen() {
         </Card>
       </div>
 
-      <MobileActionBar summary={<Price amount={totals.total} size="lg" />}>
+      <MobileActionBar summary={<PayTotal label={cartStrings.total} amount={totals.total} />}>
         <Button href="/checkout/payment" rightIcon="chevron-right">
           {strings.continue}
         </Button>
